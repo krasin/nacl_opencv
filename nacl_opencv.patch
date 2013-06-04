@@ -1,0 +1,137 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 4c757d8..237cbd6 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -363,7 +363,7 @@ if(UNIX)
+     elseif(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD|NetBSD|DragonFly")
+       set(OPENCV_LINKER_LIBS ${OPENCV_LINKER_LIBS} m pthread)
+     else()
+-      set(OPENCV_LINKER_LIBS ${OPENCV_LINKER_LIBS} dl m pthread rt)
++      set(OPENCV_LINKER_LIBS ${OPENCV_LINKER_LIBS} m pthread nosys)
+     endif()
+   else()
+     add_definitions(-DHAVE_ALLOCA -DHAVE_ALLOCA_H -DHAVE_LIBPTHREAD -DHAVE_UNISTD_H)
+diff --git a/modules/contrib/src/inputoutput.cpp b/modules/contrib/src/inputoutput.cpp
+index f64502e..94fa7e7 100644
+--- a/modules/contrib/src/inputoutput.cpp
++++ b/modules/contrib/src/inputoutput.cpp
+@@ -43,7 +43,7 @@ namespace cv
+                 while(FindNextFile(hFind, &FindFileData));
+                 FindClose(hFind);
+             }
+-        #else
++        #elif not defined(__native_client__)
+             (void)addPath;
+             DIR *dp;
+             struct dirent *dirp;
+@@ -101,7 +101,7 @@ namespace cv
+                 FindClose(hFind);
+             }
+ 
+-        #else
++        #elif not defined(__native_client__)
+             (void)addPath;
+             DIR *dp;
+             struct dirent *dirp;
+diff --git a/modules/core/src/system.cpp b/modules/core/src/system.cpp
+index b828435..5bfd72b 100644
+--- a/modules/core/src/system.cpp
++++ b/modules/core/src/system.cpp
+@@ -93,12 +93,14 @@
+ 
+ #include <stdarg.h>
+ 
+-#if defined __linux__ || defined __APPLE__
++#if defined __linux__ || defined __APPLE__ || defined __native_client__
+ #include <unistd.h>
+ #include <stdio.h>
+ #include <sys/types.h>
+ #if defined ANDROID
+ #include <sys/sysconf.h>
++#elif defined __native_client__
++/* nothing */
+ #else
+ #include <sys/sysctl.h>
+ #endif
+@@ -791,4 +793,4 @@ bool Mutex::trylock() { return impl->trylock(); }
+ 
+ }
+ 
+-/* End of file. */
+\ No newline at end of file
++/* End of file. */
+diff --git a/modules/flann/include/opencv2/flann/allocator.h b/modules/flann/include/opencv2/flann/allocator.h
+index 26091d0..b9db17e 100644
+--- a/modules/flann/include/opencv2/flann/allocator.h
++++ b/modules/flann/include/opencv2/flann/allocator.h
+@@ -68,6 +68,10 @@ T* allocate(size_t count = 1)
+  *
+  */
+ 
++#if defined WORDSIZE
++#undef WORDSIZE
++#endif
++
+ const size_t     WORDSIZE=16;
+ const  size_t     BLOCKSIZE=8192;
+ 
+diff --git a/modules/flann/include/opencv2/flann/defines.h b/modules/flann/include/opencv2/flann/defines.h
+index 13833b3..012a868 100644
+--- a/modules/flann/include/opencv2/flann/defines.h
++++ b/modules/flann/include/opencv2/flann/defines.h
+@@ -65,11 +65,15 @@
+ 
+ #undef FLANN_PLATFORM_32_BIT
+ #undef FLANN_PLATFORM_64_BIT
++#if defined __native_client__
++#define FLANN_PLATFORM_32_BIT
++#else
+ #if defined __amd64__ || defined __x86_64__ || defined _WIN64 || defined _M_X64
+ #define FLANN_PLATFORM_64_BIT
+ #else
+ #define FLANN_PLATFORM_32_BIT
+ #endif
++#endif
+ 
+ 
+ #undef FLANN_ARRAY_LEN
+diff --git a/modules/legacy/src/calibfilter.cpp b/modules/legacy/src/calibfilter.cpp
+index 7db27a1..3efd3c8 100644
+--- a/modules/legacy/src/calibfilter.cpp
++++ b/modules/legacy/src/calibfilter.cpp
+@@ -42,7 +42,9 @@
+ #include "precomp.hpp"
+ #include <stdio.h>
+ 
++#if not defined(__native_client__)
+ #undef quad
++#endif
+ 
+ CvCalibFilter::CvCalibFilter()
+ {
+@@ -919,5 +921,3 @@ bool CvCalibFilter::Undistort( CvMat** srcarr, CvMat** dstarr )
+ 
+     return true;
+ }
+-
+-
+diff --git a/modules/legacy/src/epilines.cpp b/modules/legacy/src/epilines.cpp
+index e4f3eda..b3adfb0 100644
+--- a/modules/legacy/src/epilines.cpp
++++ b/modules/legacy/src/epilines.cpp
+@@ -46,7 +46,9 @@
+ 
+ /* Valery Mosyagin */
+ 
++#if not defined(__native_client__)
+ #undef quad
++#endif
+ 
+ #define EPS64D 1e-9
+ 
+@@ -3698,5 +3700,3 @@ int cvComputeEssentialMatrix(  CvMatr32f rotMatr,
+ 
+     return CV_OK;
+ }
+-
+-
