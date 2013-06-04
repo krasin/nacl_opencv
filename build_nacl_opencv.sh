@@ -28,7 +28,7 @@ echo "Done."
 
 echo -n "Patching OpenCV sources... "
 cd opencv
-patch -p1 < $BASE/nacl_opencv.pach
+patch -p1 < $BASE/nacl_opencv.patch
 echo "Done."
 
 echo "Building OpenCV with NaCl"
