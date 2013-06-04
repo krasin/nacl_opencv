@@ -1,6 +1,7 @@
 set -ue
 
 echo "Installing prerequisite packages"
+( dpkg-query -W -f='${Status}\n'  gcc-multilib | grep "install ok installed" ) || \
 sudo apt-get install gcc-multilib
 
 echo -n "Creating directory structure... "
@@ -40,3 +41,4 @@ cd nacl
 cmake -L -DBUILD_SHARED_LIBS=OFF -DWITH_FFMPEG=OFF -DWITH_OPENEXR=OFF -DCUDA_FOUND=0 -DWITH_JASPER=OFF -DBUILD_opencv_apps=OFF ..
 make
 
+echo "Everything looks good. Check out $ROOT for more details."
